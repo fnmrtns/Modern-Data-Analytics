@@ -12,6 +12,8 @@ from  sklearn.compose import ColumnTransformer
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
+from xgboost import XGBRegressor
+from sklearn.model_selection import GridSearchCV
 
 
 zip_path = "./Data/cordis-HORIZONprojects-xlsx.zip"
@@ -124,6 +126,10 @@ X = df.drop(['delay_m'],axis=1,inplace=False)
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2, random_state=42)
 X_train = transformer.fit_transform(X_train)
 
+##################
+### Model
+##################
+
 # Example
 model = LinearRegression()
 model.fit(X_train,y_train)
@@ -142,6 +148,67 @@ r2 = r2_score(y_test, y_pred)
 
 print(f"Mean Squared Error: {mse:.2f}")
 print(f"R-squared: {r2:.2f}")
+
+
+##############
+## Pipeline
+##############
+
+pipe = Pipeline(
+    [
+        ('preprocessiong',transformer),
+        ('model',LinearRegression())
+    ]
+)
+
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2, random_state=42)
+pipe = pipe.fit(X_train,y_train)
+preds = pipe.predict(X_test)
+pipe.score(X_test,y_test)
+
+pipe1 = Pipeline(
+    [
+        ('preprocessiong',transformer),
+        ('model',XGBRegressor(                  # Step 2: Train an XGBoost regressor
+        objective='reg:squarederror',
+        n_estimators=100,
+        learning_rate=0.1,
+        max_depth=3,
+        random_state=42
+    ))
+    ]
+)
+
+X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2, random_state=42)
+pipe1 = pipe1.fit(X_train,y_train)
+preds = pipe1.predict(X_test)
+pipe1.score(X_test,y_test)
+
+##############
+## Pipeline 2
+##############
+
+param_grid = {
+    'regressor__n_estimators': [50, 100],
+    'regressor__learning_rate': [0.01, 0.1],
+    'regressor__max_depth': [3, 5],
+    'regressor__subsample': [0.8, 1.0]
+}
+
+# Wrap the pipeline in GridSearchCV
+grid_search = GridSearchCV(
+    estimator=pipe1,
+    param_grid=param_grid,
+    scoring='neg_mean_squared_error',
+    cv=3,
+    verbose=1
+)
+
+grid_search.fit(X_train, y_train)
+
+
+
+
 
 ##############
 ## PCA
@@ -171,14 +238,5 @@ sns.heatmap(loadings, cmap='RdBu_r', annot=True, fmt=".2f")
 plt.title("Component Loadings")
 plt.show()
 
-##############
-## Pipeline
-##############
-
-pipe = Pipeline(
-    [
-        ()
-    ]
-)
 
 
