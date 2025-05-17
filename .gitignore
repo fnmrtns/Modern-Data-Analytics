@@ -1,11 +1,57 @@
+# settings from gitignore from teachers 
+
 .DS*
 __pycache__*
 .env*
 env*
-.ipynb*
+.ipynb_checkpoints/
 dist/*
 *.DS*
 *mlruns*
-*experiments*
+*playingaround*
 .myenv*
+.venv*
+
+# settings from standard dagshub gitignore
+
+*.cover
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+/docs/_build/
+
+# PyBuilder
+/target/
+
+# Database
+*.db
+*.rdb
+
+# Pycharm
+.idea
+
+# VS Code
+.vscode/
+
+# Spyder
+.spyproject/
+
+# exclude data, trained models, and related utils from source control by default
+/models
+
+# Mac OS-specific storage files
+.DS_Store
+
+# vim
+*.swp
+*.swo
+
+# Mypy cache
+.mypy_cache/
 
