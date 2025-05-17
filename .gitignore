@@ -1,0 +1,11 @@
+.DS*
+__pycache__*
+.env*
+env*
+.ipynb*
+dist/*
+*.DS*
+*mlruns*
+*experiments*
+.myenv*
+
