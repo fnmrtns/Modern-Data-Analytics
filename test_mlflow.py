@@ -1,9 +1,9 @@
 import logging
 import warnings
-import dagshub
+import mlflow
 
-#set up connection to dagshub for mlflow
-dagshub.init(repo_owner='fienme', repo_name='Modern-Data-Analytics', mlflow=True)
+#set up connection to dagshub for mlflow to mlflow tracking server: 
+mlflow.set_tracking_uri("https://dagshub.com/fienme/Modern-Data-Analytics.mlflow")
 
 # model training with mlflow logging
 def train(it_n_estimators, it_learning_rate, it_max_depth):
@@ -11,14 +11,16 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
     import numpy as np
     from sklearn.model_selection import train_test_split
     from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.pipeline import Pipeline
     from xgboost import XGBRegressor
-    from urllib.parse import urlparse
     import json
-
     import mlflow
     import mlflow.sklearn
     import mlflow.xgboost
-    from mlflow.models import infer_signature
+    from mlflow.models.signature import infer_signature
+    import time
+    import joblib 
 
     logging.basicConfig(level=logging.WARN)
     logger = logging.getLogger(__name__)
@@ -29,6 +31,7 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
         mae = mean_absolute_error(actual, pred)
         r2 = r2_score(actual, pred)
         return rmse, mae, r2
+    
 
     warnings.filterwarnings("ignore")
     np.random.seed(40)
@@ -65,56 +68,73 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
     # Set default values if no max_depht is provided
     max_depth = 5 if int(it_max_depth) is None else int(it_max_depth)
 
-    # logging list with features in json file
-    target_column = "quality"
-    features = [col for col in data.columns if col != target_column]
-    print("Feature names:", features)
-
-    with open("features.json", "w") as f:
-        json.dump(features, f)
 
     # Useful for multiple runs (only doing one run in this sample notebook)
-    with mlflow.start_run():
-        # Execute ElasticNet
+    with mlflow.start_run(log_system_metrics=True) as run:
+        
+        # timing is only to record system-metrics:
+        time.sleep(15)
+
+        # Execute xgboostregressor with standardscaler as preprocessing in pipeline:
+
+        preprocessor = StandardScaler()
         lr = XGBRegressor(
             n_estimators=n_estimators,
             learning_rate=learning_rate,
             max_depth=max_depth,
             random_state=40
         )
-        lr.fit(train_x, train_y)
+
+        pipeline = Pipeline([
+            ('scaler', preprocessor),
+            ('regressor', lr)
+        ])
+
+        pipeline.fit(train_x, train_y)
 
         # Evaluate Metrics
-        predicted_qualities = lr.predict(test_x)
+        predicted_qualities = pipeline.predict(test_x)
         (rmse, mae, r2) = eval_metrics(test_y, predicted_qualities)
 
         # Print out metrics
-        print(f"XGBoost Regressor (n_estimators={n_estimators:f}, learning_rate={learning_rate:f}, max_depth={max_depth:f}):")
+        print(f"XGBoost Regressor with Standardscaler (n_estimators={n_estimators:f}, learning_rate={learning_rate:f}, max_depth={max_depth:f}):")
         print(f"  RMSE: {rmse}")
         print(f"  MAE: {mae}")
         print(f"  R2: {r2}")
 
-        # Log parameter, metrics, and model to MLflow
-        mlflow.sklearn.autolog()
-        mlflow.xgboost.autolog()
-
-        tracking_url_type_store = urlparse(mlflow.get_tracking_uri()).scheme
-
-        #  Model registry does not work with file store
-        if tracking_url_type_store != "file":
-            # Register the model
-            # There are other ways to use the Model Registry, which depends on the use case,
-            # please refer to the doc for more information:
-            # https://mlflow.org/docs/latest/model-registry.html#api-workflow
-            mlflow.sklearn.log_model(
-                lr, "model", registered_model_name="ElasticnetWineModel")
-        else:
-            mlflow.sklearn.log_model(lr, "model")
+        # signature of model - for logging
+        signature = infer_signature(train_x, lr.predict(train_x))
+        print(signature)
 
 
+        # listing all elements to be logged by mlflow
+
+        # listing parameters and metrics to be logged: 
+        mlflow.log_param("n_estimators", n_estimators)
+        mlflow.log_param("learning_rate", learning_rate)
+        mlflow.log_param("max_depth", max_depth)
+        mlflow.log_metric("rmse", rmse)
+        mlflow.log_metric("r2", r2)
+        mlflow.log_metric("mae", mae)
+        
+        # logging and registering the model (signature):
+        mlflow.xgboost.log_model(lr, "xgboost_model", registered_model_name="xgboost_v.2.0.0_dataset_v.2.0.0", signature=signature)
+        
+        # creating a json dump file with all features and logging this as a tag: 
+        feature_names = train_x.columns.tolist()
+        features_json = json.dumps(feature_names)  
+        mlflow.set_tag("features", features_json)
+
+        # logginig system-metrics: 
+        mlflow.MlflowClient().get_run(run.info.run_id).data
+
+        # added the dateset as a "param" here - so just the name is recorded
+        mlflow.log_param("data_set", "wine_quality_v.2.0.0")
 
 
 
-train(150, 0.15, 2)
+
+# listing hyperparameters you want to test 
+
 train(200, 0.2, 10)
 train(100, 0.1, 5)
