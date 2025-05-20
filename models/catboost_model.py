@@ -1,17 +1,17 @@
 from catboost import CatBoostRegressor
 import numpy as np
 
-def train_catboost(X_train, y_train, X_valid=None, y_valid=None, catboost_params=None):
+def train_catboost(X_train, y_train, X_valid=None, y_valid=None, catboost_params=None, cat_features=None):
     model = CatBoostRegressor(**(catboost_params or {}))
 
     if X_valid is not None and y_valid is not None:
-        model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
+        model.fit(X_train, y_train, eval_set=(X_valid, y_valid), cat_features=cat_features)
     else:
-        model.fit(X_train, y_train)
+        model.fit(X_train, y_train, cat_features=cat_features)
 
     return model
 
-def train_catboost_quantiles(X_train, y_train, alpha, X_valid=None, y_valid=None, catboost_quantile_params=None):
+def train_catboost_quantiles(X_train, y_train, alpha, X_valid=None, y_valid=None, catboost_quantile_params=None, cat_features=None):
     """
     Train CatBoost for quantile regression with specified alpha.
     This function inserts the required loss_function parameter.
@@ -22,9 +22,9 @@ def train_catboost_quantiles(X_train, y_train, alpha, X_valid=None, y_valid=None
     model = CatBoostRegressor(**params)
 
     if X_valid is not None and y_valid is not None:
-        model.fit(X_train, y_train, eval_set=(X_valid, y_valid))
+        model.fit(X_train, y_train, eval_set=(X_valid, y_valid), cat_features=cat_features)
     else:
-        model.fit(X_train, y_train)
+        model.fit(X_train, y_train, cat_features=cat_features)
 
     return model
 
