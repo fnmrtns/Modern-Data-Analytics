@@ -16,7 +16,7 @@ from xgboost import XGBRegressor
 from sklearn.model_selection import GridSearchCV
 import os
 
-
+os.chdir(r'C:\Users\migue\Documents\KU_LEUVEN\7_Semester\Modern Data Analitycs\Assigment\Project\Modern-Data-Analytics')
 
 zip_path = "./Data/cordis-HORIZONprojects-xlsx.zip"
 csv_filename = "project.xlsx"
@@ -57,7 +57,6 @@ def load_excel_from_zip(zip_file_path):
 
 excel_files = load_excel_from_zip(zip_path)
 
-
 # Mostrar los DataFrames cargados
 for file_name, df in excel_files.items():
     print(f"\n📄 Archivo: {file_name}")
@@ -84,12 +83,16 @@ legal_basis.head()
 len(legal_basis['projectID'].unique())
 legal_basis_dep = legal_basis.query(f'uniqueProgrammePart.notna()')
 legal_basis_dep.shape
+legal_basis_dep.groupby(['legalBasis','title']).size()
 
 df.shape
 df1 = df.merge(legal_basis_dep,left_on = 'id',right_on = 'projectID',how = 'left')
 df1.isna().sum()
+df1.shape
 
 df1[['title_x','title_y']]
+
+## Get top topics
 aux = df1.groupby('title_y').size().reset_index(name = 'n').sort_values(by = 'n',ascending = False)
 aux.shape
 aux['cumsum'] = aux['n'].cumsum()
@@ -99,6 +102,7 @@ aux1.shape
 
 df1['topic_def'] = np.where(df1['title_y'].isin(aux1['title_y']),df1['title_y'],'Other')
 df1.groupby('topic_def').size()
+df1.shape
 
 ##################
 ### merge2 - organizations
@@ -113,7 +117,7 @@ organization_num.shape
 organization_country = organization.query(f'role == "coordinator"')[['projectID','country']]
 organization_country.shape
 
-aux = organization_country.groupby('country').size().reset_index(name = 'n').sort_values(by = 'n',ascending = False)
+aux = organization_country.groupby(['country']).size().reset_index(name = 'n').sort_values(by = 'n',ascending = False)
 aux['cumsum'] = aux['n'].cumsum()
 aux['cumsum_per'] = aux['cumsum']/aux['n'].sum()
 aux1 = aux.query(f'cumsum_per < 0.9')
@@ -122,10 +126,11 @@ df1.shape
 df1 = df1.merge(organization_num,left_on = 'id',right_on = 'projectID',how = 'left')
 df1.shape
 df1 = df1.merge(organization_country,left_on = 'id',right_on = 'projectID',how = 'left')
+df1.shape
 
 df1['country1'] = np.where(df1['country'].isin(aux1['country']),df1['country'],'Other')
 df1.columns
-
+#df['title_y']
 
 ##################
 ### Create important columns
@@ -207,14 +212,20 @@ df['cost0'] = np.where(df['totalCost'] == 0, 1 ,0)
 
 # train_df2.isna().sum()
 
+df.columns
+df.head()
+df[['id','totalCost','ecMaxContribution','pry_duration_m','pry_duration_d1','delay_m','delay_d1','ratio','num_org','cost0','country1','title_y']].to_excel('./features/df_raw.xlsx')
+
+df.groupby(['legalBasis_x','title_y']).size()
+
 ##################
 ### Preprocessing 2
 ##################
-df1.columns
-df1['totalCost'].corr(df1['ecMaxContribution'])
+# df1.columns
+# df1['totalCost'].corr(df1['ecMaxContribution'])
 
-columns_to_scale = ['totalCost','ratio','pry_duration_m','num_org']
-columns_to_encode = ['legalBasis','country1','topic_def','cost0']
+columns_to_scale = ['totalCost','ecMaxContribution','ratio','pry_duration_m','pry_duration_d1','delay_d1','num_org']
+columns_to_encode = ['title_y','country1','cost0']
 
 transformer = ColumnTransformer(
     transformers=[
@@ -225,12 +236,84 @@ transformer = ColumnTransformer(
 )
 
 df.columns
-#df.query(f'delay212_m.isna()')
 df = df.query(f'~delay_m.isna()')
-y= df['delay_m']
+#df.set_index('id',inplace = True)
+#df.head()
+
+y= df[['delay_m']]
 X = df.drop(['delay_m'],axis=1,inplace=False)
+
 X_train,X_test,y_train,y_test = train_test_split(X,y,test_size=0.2, random_state=42)
-X_train = transformer.fit_transform(X_train)
+X_train['train'] = 1
+X_test['test'] = 1
+
+df.shape
+df = df.merge(X_train[['id','train']],how = 'left',on = 'id')
+df.shape
+df = df.merge(X_test[['id','test']],how = 'left',on = 'id')
+df.shape
+
+df[['id','totalCost','ecMaxContribution','pry_duration_m','pry_duration_d1','delay_m','delay_d1','ratio','num_org','cost0','country1','title_y','train','test']].to_excel('./features/df_raw.xlsx')
+
+
+X_train.shape
+X_train = X_train.drop('train',axis=1)
+X_train.shape
+X_train.set_index('id',inplace = True)
+### TRAIN
+X_train1 = transformer.fit_transform(X_train)
+
+# Obtener nombres de columnas
+scale_names = columns_to_scale
+ohe = transformer.named_transformers_['dummies']
+ohe_feature_names = ohe.get_feature_names_out(columns_to_encode)
+
+# Unir nombres
+final_column_names = scale_names + list(ohe_feature_names)
+len(final_column_names)
+
+X_train_df = pd.DataFrame(X_train1.toarray() if hasattr(X_train1, "toarray") else X_train1,
+                          columns=final_column_names,
+                          index=X_train.index)
+
+X_train_df.head()
+
+### TEST
+X_test.set_index('id',inplace = True)
+X_test1 = transformer.fit_transform(X_test)
+
+# Obtener nombres de columnas
+scale_names = columns_to_scale
+ohe = transformer.named_transformers_['dummies']
+ohe_feature_names = ohe.get_feature_names_out(columns_to_encode)
+
+# Unir nombres
+final_column_names = scale_names + list(ohe_feature_names)
+len(final_column_names)
+
+X_test_df = pd.DataFrame(X_test1.toarray() if hasattr(X_test1, "toarray") else X_test1,
+                          columns=final_column_names,
+                          index=X_test.index)
+
+X_train_df['train'] = 1
+X_test_df['test'] = 1
+
+
+X_train_df = X_train_df.reset_index()
+X_train_df.shape
+X_train_df1 = X_train_df.merge(y_train,how='left',on = 'id')
+X_train_df1.shape
+X_train_df.columns
+
+X_test_df = X_test_df.reset_index()
+X_test_df1 = X_test_df.merge(y_test,how='left',on = 'id')
+X_test_df.shape
+X_test_df1.shape
+X_test_df1.columns
+
+df_norm = pd.concat([X_train_df1,X_test_df1],axis = 0)
+df_norm.shape
+df_norm.to_excel('./features/df_norm.xlsx')
 
 ##################
 ### Model
