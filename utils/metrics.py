@@ -1,5 +1,7 @@
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 def regression_metrics(y_true, y_pred):
     mse = mean_squared_error(y_true, y_pred)
@@ -12,6 +14,31 @@ def regression_metrics(y_true, y_pred):
         "MAE": mae,
         "R2": r2
     }
+
+def summarize_coefficients(model, X_train):
+    """Prints and plots the coefficients of a linear model."""
+    coef_df = pd.DataFrame({
+        "feature": X_train.columns,
+        "coefficient": model.coef_
+    })
+
+    coef_df["abs_coef"] = coef_df["coefficient"].abs()
+    coef_df = coef_df.sort_values(by="abs_coef", ascending=False).drop(columns="abs_coef")
+
+    print("\n🧠 Linear Model Coefficients:")
+    print(coef_df)
+
+    # Plot
+    plt.figure(figsize=(10, 6))
+    plt.barh(coef_df["feature"], coef_df["coefficient"], color="skyblue")
+    plt.axvline(0, color="black", linestyle="--")
+    plt.title("Linear Regression Coefficients")
+    plt.xlabel("Effect on Startup Delay")
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.show()
+
+    return coef_df
 
 def quantile_coverage(y_true, intervals, lower_idx=0, upper_idx=2):
     """
