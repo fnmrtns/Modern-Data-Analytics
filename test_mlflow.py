@@ -3,7 +3,7 @@ import warnings
 import mlflow
 
 #set up connection to dagshub for mlflow to mlflow tracking server: 
-mlflow.set_tracking_uri("https://dagshub.com/fienme/Modern-Data-Analytics.mlflow")
+mlflow.set_tracking_uri("docker run --env-file .env -it -p 8888:8888 --name mycontainer modern-data-analytics")
 
 # model training with mlflow logging
 def train(it_n_estimators, it_learning_rate, it_max_depth):
@@ -119,11 +119,7 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
         
         # logging and registering the model (signature):
         mlflow.xgboost.log_model(lr, "xgboost_model", registered_model_name="xgboost_v.2.0.0_dataset_v.2.0.0", signature=signature)
-        
-        # creating a json dump file with all features and logging this as a tag: 
-        feature_names = train_x.columns.tolist()
-        features_json = json.dumps(feature_names)  
-        mlflow.set_tag("features", features_json)
+
 
         # logginig system-metrics: 
         mlflow.MlflowClient().get_run(run.info.run_id).data
@@ -131,7 +127,7 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
         # added the dateset as a "param" here - so just the name is recorded
         mlflow.log_param("data_set", "wine_quality_v.2.0.0")
 
-
+        
 
 
 # listing hyperparameters you want to test 
