@@ -1,0 +1,41 @@
+organization: 
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/organization.csv
+  load_args:
+    sep: ";"
+
+legal-basis:
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/legalBasis.csv
+  load_args:
+    sep: ";"
+
+programme_topics:
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/programme.csv
+  load_args:
+    sep: ";"
+
+projectDeliverables:
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/projectDeliverables.csv
+  load_args:
+    sep: ";"
+
+topics:
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/topics.csv
+  load_args:
+    sep: ";"
+
+organizationActivityType:
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/cordisref-organizationActivityType.csv
+  load_args:
+    sep: ";"
+
+euroSciVoc:
+  type: pandas.CSVDataset
+  filepath: s3://group21-data/euroSciVoc.csv
+  load_args:
+    sep: ";"

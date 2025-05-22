@@ -3,7 +3,7 @@ import warnings
 import mlflow
 
 #set up connection to dagshub for mlflow to mlflow tracking server: 
-mlflow.set_tracking_uri("docker run --env-file .env -it -p 8888:8888 --name mycontainer modern-data-analytics")
+mlflow.set_tracking_uri("https://dagshub.com/fienme/Modern-Data-Analytics.mlflow/")
 
 # model training with mlflow logging
 def train(it_n_estimators, it_learning_rate, it_max_depth):
@@ -20,7 +20,8 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
     import mlflow.xgboost
     from mlflow.models.signature import infer_signature
     import time
-    import joblib 
+    import joblib
+    import os
 
     logging.basicConfig(level=logging.WARN)
     logger = logging.getLogger(__name__)
@@ -52,6 +53,8 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
     # Split the data into training and test sets. (0.75, 0.25) split.
     train, test = train_test_split(data, test_size=0.25, random_state=40)
 
+    train.to_csv("train_data.csv", index=False)
+    test.to_csv("test_data.csv", index=False)
 
     # The predicted column is "quality" which is a scalar from [3, 9]
     train_x = train.drop(["quality"], axis=1)
@@ -124,13 +127,17 @@ def train(it_n_estimators, it_learning_rate, it_max_depth):
         # logginig system-metrics: 
         mlflow.MlflowClient().get_run(run.info.run_id).data
 
-        # added the dateset as a "param" here - so just the name is recorded
-        mlflow.log_param("data_set", "wine_quality_v.2.0.0")
+        # logging the datasets: train and test
+        mlflow.log_artifact("train_data.csv", artifact_path="datasets")
+        mlflow.log_artifact("test_data.csv", artifact_path="datasets")
 
-        
+        os.remove("train_data.csv")
+        os.remove("test_data.csv")
 
 
 # listing hyperparameters you want to test 
 
 train(200, 0.2, 10)
 train(100, 0.1, 5)
+
+   
