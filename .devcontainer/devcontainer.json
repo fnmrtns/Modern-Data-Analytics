@@ -15,5 +15,5 @@
     }
   },
   "postCreateCommand": "pip install -e .",
-  "workspaceFolder": "/workspaces/${REPO_NAME}"
+  "workspaceFolder": "/workspaces/startupdelay-horizon-app"
 }

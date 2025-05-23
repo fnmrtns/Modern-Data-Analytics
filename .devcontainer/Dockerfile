@@ -20,4 +20,4 @@ RUN pip install --upgrade pip \
     matplotlib \
     seaborn
 
-WORKDIR /workspaces/${REPO_NAME}
+WORKDIR /workspaces/startupdelay-horizon-app
