@@ -15,5 +15,5 @@
     }
   },
   "postCreateCommand": "pip install -e .",
-  "workspaceFolder": "/workspaces/startupdelay-horizon-app"
+  "workspaceFolder": "/workspaces/Modern-Data-Analytics"
 }

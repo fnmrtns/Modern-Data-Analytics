@@ -20,4 +20,4 @@ RUN pip install --upgrade pip \
     matplotlib \
     seaborn
 
-WORKDIR /workspaces/startupdelay-horizon-app
+WORKDIR /workspaces/Modern-Data-Analytics
