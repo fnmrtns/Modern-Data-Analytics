@@ -15,10 +15,11 @@ def create_pipeline(**kwargs) -> Pipeline:
             outputs=["xgb_X_train", "xgb_X_test", "xgb_y_train", "xgb_y_test"],
             name="xgb_split_data_node"
         ),
+        
         node(
             func=train_xgboost_model,
             inputs=["xgb_X_train", "xgb_y_train", "params:xgb_params"],
-            outputs="xgb_model",
+            outputs=["xgb_model", "xgb_model_mlflow"],
             name="xgb_training_node"
-        ),
+        )
     ])

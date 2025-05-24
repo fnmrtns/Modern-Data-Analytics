@@ -33,8 +33,7 @@ def split_xgboost_data(df: pd.DataFrame):
         y_test.to_frame(name="startupDelay"),
     )
 
-
-def train_xgboost_model(X_train: pd.DataFrame, y_train: pd.Series, xgb_params: dict):
+def train_xgboost_model(X_train, y_train, xgb_params):
     model = XGBRegressor(**xgb_params)
     model.fit(X_train, y_train)
-    return model
+    return model, model 

@@ -77,3 +77,21 @@ metrics_cb:
 model_comparison_table:
   type: kedro_datasets.pandas.ParquetDataset
   filepath: data/08_reporting/model_comparison.parquet
+
+confusion_matrix_plot:
+  type: kedro_mlflow.io.artifacts.MlflowArtifactDataset
+  dataset:
+    type: matplotlib.MatplotlibWriter
+    filepath: data/08_reporting/confusion_matrix.png
+
+xgb_model_mlflow:
+  type: kedro_mlflow.io.models.MlflowModelTrackingDataset
+  flavor: mlflow.xgboost
+  save_args:
+    registered_model_name: startupdelay-xgb
+
+cb_model_mlflow:
+  type: kedro_mlflow.io.models.MlflowModelTrackingDataset
+  flavor: mlflow.catboost
+  save_args:
+    registered_model_name: startupdelay-catboost

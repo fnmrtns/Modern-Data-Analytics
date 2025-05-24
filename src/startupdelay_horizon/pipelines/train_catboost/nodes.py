@@ -25,14 +25,34 @@ def split_catboost_data(df: pd.DataFrame):
         cat_features,
     )
 
-def train_catboost_model(X_train, y_train, X_valid, y_valid, catboost_params, cat_features):
+import mlflow
+from catboost import CatBoostRegressor
+
+def train_catboost_model(
+    X_train,
+    y_train,
+    X_valid,
+    y_valid,
+    catboost_params,
+    cat_features
+):
+    # Set descriptive tags for filtering/searching in MLflow UI
+    mlflow.set_tag("model_type", "catboost")
+    mlflow.set_tag("pipeline_stage", "train")
+
+    # Explicitly log hyperparameters (in case autolog is not used)
+    for key, value in catboost_params.items():
+        mlflow.log_param(f"cb_{key}", value)
+
     model = CatBoostRegressor(**catboost_params)
     model.fit(
-        X_train, y_train,
+        X_train,
+        y_train,
         eval_set=(X_valid, y_valid),
         cat_features=cat_features,
-        verbose=0
+        verbose=0,
     )
-    return model
+
+    return model, model
 
 

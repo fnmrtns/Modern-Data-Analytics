@@ -1,4 +1,5 @@
 from kedro.pipeline import Pipeline, node, pipeline
+import mlflow
 from .nodes import (
     preprocess_for_catboost,
     split_catboost_data,
@@ -27,15 +28,8 @@ def create_pipeline() -> Pipeline:
         ),
         node(
             func=train_catboost_model,
-            inputs={
-                "X_train": "cb_X_train",
-                "y_train": "cb_y_train",
-                "X_valid": "cb_X_test",
-                "y_valid": "cb_y_test",
-                "catboost_params": "params:cb_params",
-                "cat_features": "cb_cat_features",
-            },
-            outputs="cb_model",
-            name="cb_training_node",
+            inputs=["cb_X_train", "cb_y_train", "cb_X_test", "cb_y_test", "params:cb_params", "cb_cat_features"],
+            outputs=["cb_model", "cb_model_mlflow"],
+            name="cb_training_node"
         )
     ])
