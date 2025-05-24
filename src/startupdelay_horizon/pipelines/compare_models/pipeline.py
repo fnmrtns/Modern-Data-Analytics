@@ -5,7 +5,7 @@ def create_pipeline(**kwargs) -> Pipeline:
     return pipeline([
         node(
             func=compare_model_metrics,
-            inputs=["metrics_xgb", "metrics_cb_point", "metrics_cb_quantile"],
+            inputs=["metrics_xgb", "metrics_cb"],
             outputs="model_comparison_table",
             name="compare_model_metrics_node"
         )

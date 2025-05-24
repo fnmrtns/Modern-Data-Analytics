@@ -35,14 +35,4 @@ def train_catboost_model(X_train, y_train, X_valid, y_valid, catboost_params, ca
     )
     return model
 
-def train_cb_quantile_model(X_train, y_train, X_valid, y_valid, catboost_params, cat_features, alpha):
-    params = catboost_params.copy()
-    params["loss_function"] = f"Quantile:alpha={alpha}"
-    model = CatBoostRegressor(**params)
-    model.fit(
-        X_train, y_train,
-        eval_set=(X_valid, y_valid),
-        cat_features=cat_features,
-        verbose=0
-    )
-    return model
+

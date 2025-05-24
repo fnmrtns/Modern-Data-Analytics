@@ -66,29 +66,13 @@ cb_model:
   type: pickle.PickleDataset
   filepath: data/06_models/cb_model.pkl
 
-cb_model_low:
-  type: pickle.PickleDataset
-  filepath: data/06_models/cb_model_low.pkl
-
-cb_model_median:
-  type: pickle.PickleDataset
-  filepath: data/06_models/cb_model_median.pkl
-
-cb_model_high:
-  type: pickle.PickleDataset
-  filepath: data/06_models/cb_model_high.pkl
-
 metrics_xgb:
   type: kedro_datasets.pandas.ParquetDataset
   filepath: data/08_reporting/metrics_xgb.parquet
 
-metrics_cb_point:
+metrics_cb:
   type: kedro_datasets.pandas.ParquetDataset
-  filepath: data/08_reporting/metrics_cb_point.parquet
-
-metrics_cb_quantile:
-  type: kedro_datasets.pandas.ParquetDataset
-  filepath: data/08_reporting/metrics_cb_quantile.parquet
+  filepath: data/08_reporting/metrics_cb.parquet
 
 model_comparison_table:
   type: kedro_datasets.pandas.ParquetDataset

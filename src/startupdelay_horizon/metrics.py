@@ -16,18 +16,3 @@ def regression_metrics(y_true, y_pred):
         "MAE": mae,
         "R2": r2,
     }
-
-def quantile_coverage(y_true, intervals, lower_idx=0, upper_idx=2):
-    """
-    Computes the percentage of true values that fall inside predicted intervals.
-    intervals: shape (n_samples, 3), columns = [lower, median, upper]
-    """
-    lower = intervals[:, lower_idx]
-    upper = intervals[:, upper_idx]
-    coverage = np.mean((y_true >= lower) & (y_true <= upper))
-    avg_interval_width = np.mean(upper - lower)
-
-    return {
-        "Interval Coverage": coverage,
-        "Avg Interval Width": avg_interval_width
-    }
