@@ -1,0 +1,11 @@
+train_data:
+  type: kedro_datasets.json.JSONDataset
+  filepath: data/01_raw/train.json
+
+df:
+  type: kedro_datasets.json.JSONDataset
+  filepath: data/01_raw/project_df.json
+
+organization:
+  type: kedro_datasets.json.JSONDataset
+  filepath: data/01_raw/org_df.json
