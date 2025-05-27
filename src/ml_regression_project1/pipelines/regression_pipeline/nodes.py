@@ -10,6 +10,8 @@ from typing import List
 import numpy as np
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.metrics import r2_score
+
 
 def coma_to_point(df: pd.DataFrame, column: str) -> pd.DataFrame:
     """
@@ -127,6 +129,15 @@ def apply_pca(X_train, X_test, n_components):
     X_test_pca = pca.transform(X_test)
     return X_train_pca, X_test_pca, pca
 
+def report_pca_variance(pca_model):
+    """
+    Devuelve la varianza explicada acumulada por los componentes principales seleccionados.
+    """
+    explained_variance = pca_model.explained_variance_ratio_
+    total_explained = explained_variance.cumsum()[-1]
+    print(f"Cumulative explained variance: {total_explained:.4f}")
+    return total_explained
+
 def train_model(X_train, y_train):
     model = LinearRegression()
     model.fit(X_train, y_train)
@@ -137,3 +148,12 @@ def evaluate_model(model, X_test, y_test):
     mse = mean_squared_error(y_test, predictions)
     print(f"Mean Squared Error: {mse:.4f}")
     return mse
+
+def evaluate_model_r2(model, X_test, y_test):
+    """
+    Calcula el R² del modelo usando los datos de prueba.
+    """
+    y_pred = model.predict(X_test)
+    r2 = r2_score(y_test, y_pred)
+    print(f"R² score: {r2:.4f}")
+    return r2

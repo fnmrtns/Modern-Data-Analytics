@@ -1,7 +1,7 @@
 # src/ml_regression_project/pipelines/regression_pipeline/pipeline.py
 
 from kedro.pipeline import Pipeline, node
-from .nodes import fit_transform_features,enrich_project_data,remove_outliers_isolation_forest,split_data, apply_pca,train_model, evaluate_model
+from .nodes import report_pca_variance,evaluate_model_r2,fit_transform_features,enrich_project_data,remove_outliers_isolation_forest,split_data, apply_pca,train_model, evaluate_model
 
 def create_pipeline(**kwargs):
     return Pipeline([
@@ -40,6 +40,12 @@ def create_pipeline(**kwargs):
             outputs=["X_train_pca", "X_test_pca", "pca_model"],
             name="apply_pca_node"
         ),
+    node(
+        func=report_pca_variance,
+        inputs="pca_model",
+        outputs="explained_pca_variance",
+        name="report_pca_variance_node"
+        ),        
         node(
             func=train_model,
             inputs=["X_train_pca", "y_train"],
@@ -51,5 +57,11 @@ def create_pipeline(**kwargs):
             inputs=["model", "X_test_pca", "y_test"],
             outputs="mse",
             name="evaluate_model_node"
-        )
+        ),
+    node(
+        func=evaluate_model_r2,
+        inputs=["model", "X_test_pca", "y_test"],
+        outputs="r2_score",
+        name="evaluate_model_r2_node"
+    ),        
     ])
